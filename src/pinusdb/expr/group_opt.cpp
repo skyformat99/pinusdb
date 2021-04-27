@@ -15,7 +15,8 @@
 */
 
 #include "expr/group_opt.h"
-#include "expr/expr_item.h"
+#include "expr/expr_value.h"
+#include "expr/parse.h"
 #include "util/string_tool.h"
 #include "pdb_error.h"
 #include "internal.h"
@@ -38,8 +39,10 @@ GroupOpt::GroupOpt(Token* pToken1)
   else
     this->valid_ = false;
 }
-GroupOpt::GroupOpt(Token* pToken1, ExprItem* pTimeVal)
+
+GroupOpt::GroupOpt(Token* pToken1, ExprValue* pTimeVal)
 {
+  DBVal tmpVal;
   this->valid_ = false;
   this->isTableName_ = false;
   this->isDevId_ = false;
@@ -50,17 +53,22 @@ GroupOpt::GroupOpt(Token* pToken1, ExprItem* pTimeVal)
     if (pToken1 == nullptr || pTimeVal == nullptr)
       break;
 
-    if (!pTimeVal->GetTimeVal(&tVal_))
+    if (pTimeVal->GetValueType() != TK_TIMEVAL && pTimeVal->GetValueType() != TK_INTEGER)
       break;
 
-    if (tVal_ <= 0)
-      break;
+    tmpVal = pTimeVal->GetValue();
+    if (DBVAL_IS_INT64(&tmpVal))
+    {
+      tVal_ = DBVAL_GET_INT64(&tmpVal);
+      if (tVal_ <= 0)
+        break;
 
-    this->valid_ = true;
+      this->valid_ = true;
+    }
 
-  } while (false);
-  
+  } while (false);  
 }
+
 GroupOpt::~GroupOpt()
 {
 
@@ -70,18 +78,22 @@ bool GroupOpt::Valid() const
 {
   return valid_;
 }
+
 bool GroupOpt::IsTableNameGroup() const
 {
   return valid_ ? isTableName_ : false;
 }
+
 bool GroupOpt::IsDevIdGroup() const
 {
   return valid_ ? isDevId_ : false;
 }
+
 bool GroupOpt::IsTStampGroup() const
 {
   return valid_ ? isTStamp_ : false;
 }
+
 PdbErr_t GroupOpt::GetTStampStep(int64_t& timeStampStep) const
 {
   if (valid_ && isTStamp_)
@@ -97,10 +109,12 @@ GroupOpt* GroupOpt::MakeGroupOpt(Token* pToken1)
 {
   return new GroupOpt(pToken1);
 }
-GroupOpt* GroupOpt::MakeGroupOpt(Token* pToken1, ExprItem* pTimeVal)
+
+GroupOpt* GroupOpt::MakeGroupOpt(Token* pToken1, ExprValue* pTimeVal)
 {
   return new GroupOpt(pToken1, pTimeVal);
 }
+
 void GroupOpt::FreeGroupOpt(GroupOpt* pGroupOpt)
 {
   delete pGroupOpt;

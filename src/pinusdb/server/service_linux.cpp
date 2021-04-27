@@ -57,6 +57,7 @@ TableSet* pGlbTableSet = nullptr;
 CommitLogList* pGlbCommitLog = nullptr;
 bool glbCancelCompTask = false;
 bool glbRunning = true;
+bool glbRepStates = false;
 
 static void SignalHandler(int sig)
 {
