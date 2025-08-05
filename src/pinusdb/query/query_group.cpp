@@ -19,6 +19,7 @@
 #include "query/group_function.h"
 #include "util/coding.h"
 #include "server/proto_header.h"
+#include "value/const_value.h"
 
 QueryGroup::QueryGroup()
 {
@@ -212,7 +213,7 @@ PdbErr_t QueryGroup::GetResult(std::string& dataBuf, uint32_t* pFieldCnt, uint32
   if (pFieldCnt != nullptr)
     *pFieldCnt = static_cast<uint32_t>(rstFieldVec_.size());
   if (pRecordCnt != nullptr)
-    *pRecordCnt = static_cast<uint32_t>(grpFieldVec_.size());
+    *pRecordCnt = static_cast<uint32_t>(objVec_.size());
 
   return PdbE_OK;
 }
